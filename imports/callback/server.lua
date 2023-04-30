@@ -78,5 +78,3 @@ function lib.callback.register(name, cb)
 end
 
 return lib.callback
-
-

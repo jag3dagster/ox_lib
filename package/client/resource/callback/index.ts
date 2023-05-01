@@ -41,6 +41,27 @@ export function triggerServerCallback<T = unknown>(
   });
 }
 
+export function triggerServerCallbackLatent<T = unknown>(
+  eventName: string,
+  delay: number | null,
+  bps: number,
+  ...args: any
+): Promise<T> | void {
+  if (!eventTimer(eventName, delay)) return;
+
+  let key: string
+
+  do {
+    key = `${eventName}:${Math.floor(Math.random() * (100000 + 1))}`;
+  } while (activeEvents[key]);
+
+  TriggerLatentServerEvent(`__ox_cb_${eventName}`, bps, cache.resource, key, ...args);
+
+  return new Promise<T>((resolve) => {
+    activeEvents[key] = resolve;
+  })
+}
+
 export function onServerCallback(eventName: string, cb: (...args) => any) {
   onNet(`__ox_cb_${eventName}`, (resource: string, key: string, ...args) => {
     let response: any;
@@ -54,4 +75,19 @@ export function onServerCallback(eventName: string, cb: (...args) => any) {
 
     emitNet(`__ox_cb_${resource}`, key, response);
   });
+}
+
+export function onServerCallbackLatent(eventName: string, bps: number, cb: (...args) => any) {
+  onNet(`__ox_cb_${eventName}`, (resource: string, key: string, ...args) => {
+    let response: any;
+
+    try {
+      response = cb(...args)
+    } catch (e: any) {
+      console.error(`an error occurred while handling latent callback event ${eventName}`);
+      console.log(`^3${e.stack}^0`);
+    }
+
+    TriggerLatentServerEvent(`__ox_cb_${resource}`, bps, key, response);
+  })
 }

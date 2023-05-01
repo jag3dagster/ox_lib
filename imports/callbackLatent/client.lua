@@ -1,6 +1,6 @@
 local events = {}
 local timers = {}
-local cbEvent = ('__ox_cbl_%s')
+local cbEvent = ('__ox_cb_%s')
 
 RegisterNetEvent(cbEvent:format(cache.resource), function(key, ...)
     local cb = events[key]
